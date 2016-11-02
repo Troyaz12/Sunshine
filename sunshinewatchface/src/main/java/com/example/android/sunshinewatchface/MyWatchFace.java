@@ -60,7 +60,10 @@ public class MyWatchFace extends CanvasWatchFaceService {
 
     private class Engine extends CanvasWatchFaceService.Engine {
         float mXOffset;
-        float mYOffset = R.dimen.digital_y_offset;
+        float mYOffset;
+        float mYOffsetTemp;
+        float mXOffsetTemp;
+
         /* Handler to update the time once a second in interactive mode. */
         private final Handler mUpdateTimeHandler = new Handler() {
             @Override
@@ -126,6 +129,8 @@ public class MyWatchFace extends CanvasWatchFaceService {
             mTextPaint = new Paint();
             mTextPaint = createTextPaint(getResources().getColor(R.color.digital_text));
             mYOffset = getResources().getDimension(R.dimen.digital_y_offset);
+            mYOffsetTemp = getResources().getDimension(R.dimen.digital_y_offset_temp);
+
             mHandPaint = new Paint();
             mHandPaint.setColor(Color.BLUE);
             mHandPaint.setStrokeWidth(STROKE_WIDTH);
@@ -207,6 +212,9 @@ public class MyWatchFace extends CanvasWatchFaceService {
             float textSize = resources.getDimension(isRound
                     ? R.dimen.digital_text_size_round : R.dimen.digital_text_size);
 
+            mXOffsetTemp = resources.getDimension(isRound
+                    ? R.dimen.digital_x_offset_round_Temp : R.dimen.digital_x_offset);
+
             mTextPaint.setTextSize(textSize);
         }
 
@@ -241,6 +249,11 @@ public class MyWatchFace extends CanvasWatchFaceService {
             //concatenate month, day, day of week and year to a string and add to the watchface
             String text = dayString + ", " +monthString+" " +String.valueOf(date)+" "+String.valueOf(year);
             canvas.drawText(text, mXOffset, mYOffset, mTextPaint);
+
+            //add temp
+            String textTemp = "70" +"|" +"85";
+            canvas.drawText(textTemp, mXOffsetTemp, mYOffsetTemp, mTextPaint);
+
 
 
             // save the canvas state before we begin to rotate it
