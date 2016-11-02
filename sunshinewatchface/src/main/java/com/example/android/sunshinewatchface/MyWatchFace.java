@@ -60,7 +60,7 @@ public class MyWatchFace extends CanvasWatchFaceService {
 
     private class Engine extends CanvasWatchFaceService.Engine {
         float mXOffset;
-        float mYOffset;
+        float mYOffset = R.dimen.digital_y_offset;
         /* Handler to update the time once a second in interactive mode. */
         private final Handler mUpdateTimeHandler = new Handler() {
             @Override
@@ -233,7 +233,11 @@ public class MyWatchFace extends CanvasWatchFaceService {
             final int date = mTime.monthDay;
             final int year = mTime.year;
 
-            String text = String.valueOf(year);
+
+            String dayString = convertDay(day);
+            String monthString = convertMonth(month);
+
+            String text = dayString + ", " +monthString+" " +String.valueOf(date)+" "+String.valueOf(year);
             canvas.drawText(text, mXOffset, mYOffset, mTextPaint);
 
 
@@ -304,6 +308,61 @@ public class MyWatchFace extends CanvasWatchFaceService {
             if (shouldTimerBeRunning()) {
                 mUpdateTimeHandler.sendEmptyMessage(R.id.message_update);
             }
+        }
+        private String convertDay(int day){
+
+            String dayString = "NULL";
+            switch (day){
+                case 0: dayString = "SUN";
+                    break;
+                case 1: dayString = "MON";
+                        break;
+                case 2: dayString = "TUE";
+                        break;
+                case 3: dayString = "WED";
+                    break;
+                case 4: dayString = "THU";
+                    break;
+                case 5: dayString = "FRI";
+                    break;
+                case 6: dayString = "SAT";
+                    break;
+            }
+
+
+            return dayString;
+        }
+        private String convertMonth(int month){
+            String monthString = "NULL";
+            switch (month){
+                case 0: monthString = "JAN";
+                    break;
+                case 1: monthString = "FEB";
+                    break;
+                case 2: monthString = "MAR";
+                    break;
+                case 3: monthString = "APR";
+                    break;
+                case 4: monthString = "MAY";
+                    break;
+                case 5: monthString = "JUN";
+                    break;
+                case 6: monthString = "JUL";
+                    break;
+                case 7: monthString = "AUG";
+                    break;
+                case 8: monthString = "SEP";
+                    break;
+                case 9: monthString = "OCT";
+                    break;
+                case 10: monthString = "NOV";
+                    break;
+                case 11: monthString = "DEC";
+                    break;
+            }
+
+
+            return monthString;
         }
 
         /**
