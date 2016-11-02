@@ -228,15 +228,17 @@ public class MyWatchFace extends CanvasWatchFaceService {
             final float hourHandOffset = mTime.minute / 2f;
             final float hoursRotation = (mTime.hour * 30) + hourHandOffset;
 
+            //get month, date year
             final int day = mTime.weekDay;
             final int month = mTime.month;
             final int date = mTime.monthDay;
             final int year = mTime.year;
 
-
+            //convert day of the week and month to a string
             String dayString = convertDay(day);
             String monthString = convertMonth(month);
 
+            //concatenate month, day, day of week and year to a string and add to the watchface
             String text = dayString + ", " +monthString+" " +String.valueOf(date)+" "+String.valueOf(year);
             canvas.drawText(text, mXOffset, mYOffset, mTextPaint);
 
@@ -309,6 +311,7 @@ public class MyWatchFace extends CanvasWatchFaceService {
                 mUpdateTimeHandler.sendEmptyMessage(R.id.message_update);
             }
         }
+        //converts the day of the week to a string
         private String convertDay(int day){
 
             String dayString = "NULL";
@@ -332,6 +335,7 @@ public class MyWatchFace extends CanvasWatchFaceService {
 
             return dayString;
         }
+        //converts month to a string
         private String convertMonth(int month){
             String monthString = "NULL";
             switch (month){
