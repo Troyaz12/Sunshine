@@ -36,6 +36,13 @@ import com.example.android.sunshine.app.R;
 import com.example.android.sunshine.app.Utility;
 import com.example.android.sunshine.app.data.WeatherContract;
 import com.example.android.sunshine.app.muzei.WeatherMuzeiSource;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.wearable.DataApi;
+import com.google.android.gms.wearable.PutDataMapRequest;
+import com.google.android.gms.wearable.PutDataRequest;
+import com.google.android.gms.wearable.Wearable;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -52,7 +59,7 @@ import java.net.URL;
 import java.util.Vector;
 import java.util.concurrent.ExecutionException;
 
-public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
+public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
     public final String LOG_TAG = SunshineSyncAdapter.class.getSimpleName();
     public static final String ACTION_DATA_UPDATED =
             "com.example.android.sunshine.app.ACTION_DATA_UPDATED";
@@ -62,6 +69,9 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     public static final int SYNC_FLEXTIME = SYNC_INTERVAL/3;
     private static final long DAY_IN_MILLIS = 1000 * 60 * 60 * 24;
     private static final int WEATHER_NOTIFICATION_ID = 3004;
+
+    private GoogleApiClient mGoogleApiClient;
+    private static final String TAG = "MainActivity";
 
 
     private static final String[] NOTIFY_WEATHER_PROJECTION = new String[] {
@@ -77,6 +87,21 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     private static final int INDEX_MIN_TEMP = 2;
     private static final int INDEX_SHORT_DESC = 3;
 
+    @Override
+    public void onConnected(Bundle bundle) {
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+
+    }
+
     @Retention(RetentionPolicy.SOURCE)
     @IntDef({LOCATION_STATUS_OK, LOCATION_STATUS_SERVER_DOWN, LOCATION_STATUS_SERVER_INVALID,  LOCATION_STATUS_UNKNOWN, LOCATION_STATUS_INVALID})
     public @interface LocationStatus {}
@@ -89,11 +114,22 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
 
     public SunshineSyncAdapter(Context context, boolean autoInitialize) {
         super(context, autoInitialize);
+        mGoogleApiClient = new GoogleApiClient.Builder(context)
+                .addApi(Wearable.API)
+                .addConnectionCallbacks((GoogleApiClient.ConnectionCallbacks) context)
+                .addOnConnectionFailedListener((GoogleApiClient.OnConnectionFailedListener) context)
+                .build();
+
+
+
     }
 
     @Override
     public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
         Log.d(LOG_TAG, "Starting sync");
+
+
+
 
         // We no longer need just the location String, but also potentially the latitude and
         // longitude, in case we are syncing based on a new Place Picker API result.
@@ -339,24 +375,10 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                 low = temperatureObject.getDouble(OWM_MIN);
 
                 if(i==0) {
-                    //**check to see if values have changed, if they have push new values to the watch
-                    Uri weatherUri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(locationSetting, System.currentTimeMillis());
 
-                    // we'll query our contentProvider
-                    Cursor cursor = context.getContentResolver().query(weatherUri, NOTIFY_WEATHER_PROJECTION, null, null, null);
 
-                    int weatherIdOld = 0;
-                    double highOld = 0;
-                    double lowOld = 0;
+                        syncWearable(weatherId,high,low);
 
-                    if (cursor.moveToFirst()) {
-                        weatherIdOld = cursor.getInt(INDEX_WEATHER_ID);
-                        highOld = cursor.getDouble(INDEX_MAX_TEMP);
-                        lowOld = cursor.getDouble(INDEX_MIN_TEMP);
-                    }
-                    if (weatherId != weatherIdOld || high != highOld || low != lowOld) {
-                        System.out.println("Send new info to watchface");
-                    }
                 }
 
                 ContentValues weatherValues = new ContentValues();
@@ -679,4 +701,41 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         spe.putInt(c.getString(R.string.pref_location_status_key), locationStatus);
         spe.commit();
     }
+
+    //push data to the wearable
+    private void syncWearable (int weatherID, double high, double low){
+
+        int weatherIDDummyData = 15;
+        double highDummyData = 16;
+        double lowDummyData = 17;
+
+
+        PutDataMapRequest putDataMapRequest = PutDataMapRequest.create("/message");
+        putDataMapRequest.getDataMap().putInt("weatherID",weatherIDDummyData);
+        putDataMapRequest.getDataMap().putDouble("high",highDummyData);
+        putDataMapRequest.getDataMap().putDouble("low",lowDummyData);
+
+        PutDataRequest request = putDataMapRequest.asPutDataRequest();
+        request.setUrgent();
+
+        System.out.println("Message :"+ mGoogleApiClient.isConnected());
+
+        Wearable.DataApi.putDataItem(mGoogleApiClient, request)
+                .setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
+                    @Override
+                    public void onResult(DataApi.DataItemResult dataItemResult) {
+                        if (!dataItemResult.getStatus().isSuccess()) {
+
+                            Log.e(TAG, "Failed to send data item, google api connection status is: "+mGoogleApiClient.isConnected());
+                        } else{
+                            Log.e(TAG, "Success!");
+
+                        }
+                    }
+                });
+
+
+    }
+
+
 }

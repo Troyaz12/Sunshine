@@ -42,9 +42,10 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
     private static final String DETAILFRAGMENT_TAG = "DFTAG";
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     public static final String SENT_TOKEN_TO_SERVER = "sentTokenToServer";
-
     private boolean mTwoPane;
     private String mLocation;
+
+    public int Int;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
