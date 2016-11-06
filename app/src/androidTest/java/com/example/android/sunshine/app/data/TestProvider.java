@@ -38,6 +38,18 @@ import com.example.android.sunshine.app.data.WeatherContract.WeatherEntry;
     ContentProvider to make sure that you've implemented things reasonably correctly.
  */
 public class TestProvider extends AndroidTestCase {
+    private static final String[] NOTIFY_WEATHER_PROJECTION = new String[] {
+            WeatherContract.WeatherEntry.COLUMN_WEATHER_ID,
+            WeatherContract.WeatherEntry.COLUMN_MAX_TEMP,
+            WeatherContract.WeatherEntry.COLUMN_MIN_TEMP,
+            WeatherEntry.COLUMN_DATE
+    };
+
+    // these indices must match the projection
+    private static final int INDEX_WEATHER_ID = 0;
+    private static final int INDEX_MAX_TEMP = 1;
+    private static final int INDEX_MIN_TEMP = 2;
+    private static final int INDEX_COLUMN_DATE = 3;
 
     public static final String LOG_TAG = TestProvider.class.getSimpleName();
 
@@ -195,6 +207,39 @@ public class TestProvider extends AndroidTestCase {
 
         // Make sure we get the correct cursor out of the database
         TestUtilities.validateCursor("testBasicWeatherQuery", weatherCursor, weatherValues);
+
+
+
+        String locationSetting = "99705";
+
+        Uri weatherUri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(locationSetting, 1419033600);
+
+        // we'll query our contentProvider
+        Cursor cursor = mContext.getContentResolver().query(weatherUri, NOTIFY_WEATHER_PROJECTION, null, null, null);
+
+        int weatherIdOld = 0;
+        double highOld = 0;
+        double lowOld = 0;
+        String dateOld = "null";
+
+        int weatherId = 321;
+        double high = 75;
+        double low = 65;
+
+        if (cursor.moveToFirst()) {
+            weatherIdOld = cursor.getInt(INDEX_WEATHER_ID);
+            highOld = cursor.getDouble(INDEX_MAX_TEMP);
+            lowOld = cursor.getDouble(INDEX_MIN_TEMP);
+            dateOld = cursor.getString(INDEX_COLUMN_DATE);
+        }
+        if (weatherId != weatherIdOld || high != highOld || low != lowOld) {
+            System.out.println("Send new info to watchface");
+        }
+        System.out.println("Weather id: " + weatherIdOld+ "cursor# "+ cursor.getCount()+" weather uri: "+weatherUri +"Column date: " +dateOld);
+        System.out.println("Weather id: "+WeatherEntry.CONTENT_URI);
+
+        assertTrue("weather id not matching", weatherIdOld == 321);
+
     }
 
     /*
@@ -228,6 +273,8 @@ public class TestProvider extends AndroidTestCase {
             assertEquals("Error: Location Query did not properly set NotificationUri",
                     locationCursor.getNotificationUri(), LocationEntry.CONTENT_URI);
         }
+
+
     }
 
     /*
@@ -442,6 +489,11 @@ public class TestProvider extends AndroidTestCase {
             weatherValues.put(WeatherContract.WeatherEntry.COLUMN_WEATHER_ID, 321);
             returnContentValues[i] = weatherValues;
         }
+
+
+
+
+
         return returnContentValues;
     }
 

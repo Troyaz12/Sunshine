@@ -338,25 +338,26 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                 high = temperatureObject.getDouble(OWM_MAX);
                 low = temperatureObject.getDouble(OWM_MIN);
 
-                //**check to see if values have changed, if they have push new values to the watch
-                Uri weatherUri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(locationSetting, dateTime);
+                if(i==0) {
+                    //**check to see if values have changed, if they have push new values to the watch
+                    Uri weatherUri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(locationSetting, System.currentTimeMillis());
 
-                // we'll query our contentProvider
-                Cursor cursor = context.getContentResolver().query(weatherUri, NOTIFY_WEATHER_PROJECTION, null, null, null);
+                    // we'll query our contentProvider
+                    Cursor cursor = context.getContentResolver().query(weatherUri, NOTIFY_WEATHER_PROJECTION, null, null, null);
 
-                int weatherIdOld=0;
-                double highOld=0;
-                double lowOld=0;
+                    int weatherIdOld = 0;
+                    double highOld = 0;
+                    double lowOld = 0;
 
-                if (cursor.moveToFirst()) {
-                    weatherIdOld = cursor.getInt(INDEX_WEATHER_ID);
-                    highOld = cursor.getDouble(INDEX_MAX_TEMP);
-                    lowOld = cursor.getDouble(INDEX_MIN_TEMP);
+                    if (cursor.moveToFirst()) {
+                        weatherIdOld = cursor.getInt(INDEX_WEATHER_ID);
+                        highOld = cursor.getDouble(INDEX_MAX_TEMP);
+                        lowOld = cursor.getDouble(INDEX_MIN_TEMP);
+                    }
+                    if (weatherId != weatherIdOld || high != highOld || low != lowOld) {
+                        System.out.println("Send new info to watchface");
+                    }
                 }
-                if (weatherId!=weatherIdOld || high!=highOld ||low!=lowOld){
-                    System.out.println("Send new info to watchface");
-                }
-
 
                 ContentValues weatherValues = new ContentValues();
 
