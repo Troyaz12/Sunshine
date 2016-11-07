@@ -114,13 +114,13 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter implements 
 
     public SunshineSyncAdapter(Context context, boolean autoInitialize) {
         super(context, autoInitialize);
-        mGoogleApiClient = new GoogleApiClient.Builder(context)
+/*        mGoogleApiClient = new GoogleApiClient.Builder(context)
                 .addApi(Wearable.API)
                 .addConnectionCallbacks((GoogleApiClient.ConnectionCallbacks) context)
                 .addOnConnectionFailedListener((GoogleApiClient.OnConnectionFailedListener) context)
                 .build();
 
-
+*/
 
     }
 
@@ -377,7 +377,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter implements 
                 if(i==0) {
 
 
-                        syncWearable(weatherId,high,low);
+                  //      syncWearable(weatherId,high,low);
 
                 }
 
@@ -716,7 +716,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter implements 
         putDataMapRequest.getDataMap().putDouble("low",lowDummyData);
 
         PutDataRequest request = putDataMapRequest.asPutDataRequest();
-        request.setUrgent();
+      //  request.setUrgent();
 
         System.out.println("Message :"+ mGoogleApiClient.isConnected());
 

@@ -35,8 +35,14 @@ import com.example.android.sunshine.app.gcm.RegistrationIntentService;
 import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.wearable.DataApi;
+import com.google.android.gms.wearable.PutDataMapRequest;
+import com.google.android.gms.wearable.PutDataRequest;
+import com.google.android.gms.wearable.Wearable;
 
-public class MainActivity extends AppCompatActivity implements ForecastFragment.Callback {
+public class MainActivity extends AppCompatActivity implements ForecastFragment.Callback,GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private final String LOG_TAG = MainActivity.class.getSimpleName();
     private static final String DETAILFRAGMENT_TAG = "DFTAG";
@@ -44,6 +50,7 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
     public static final String SENT_TOKEN_TO_SERVER = "sentTokenToServer";
     private boolean mTwoPane;
     private String mLocation;
+    private GoogleApiClient mGoogleApiClient;
 
     public int Int;
 
@@ -108,8 +115,22 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
                 startService(intent);
             }
         }
-    }
 
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(Wearable.API)
+                .addConnectionCallbacks((GoogleApiClient.ConnectionCallbacks) this)
+                .addOnConnectionFailedListener((GoogleApiClient.OnConnectionFailedListener) this)
+                .build();
+
+    }
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mGoogleApiClient.connect();
+        // syncData();
+
+
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -149,6 +170,16 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
             }
             mLocation = location;
         }
+
+
+        int weatherId =1;
+        double high = 2;
+        double low = 3;
+
+        syncWearable(weatherId,high,low);
+
+
+
     }
 
     @Override
@@ -196,5 +227,54 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
             return false;
         }
         return true;
+    }
+    //push data to the wearable
+    private void syncWearable (int weatherID, double high, double low){
+
+        int weatherIDDummyData = 15;
+        double highDummyData = System.currentTimeMillis();
+        double lowDummyData = 17;
+
+
+        PutDataMapRequest putDataMapRequest = PutDataMapRequest.create("/message");
+        putDataMapRequest.getDataMap().putInt("weatherID",weatherIDDummyData);
+        putDataMapRequest.getDataMap().putDouble("high",highDummyData);
+        putDataMapRequest.getDataMap().putDouble("low",lowDummyData);
+
+        PutDataRequest request = putDataMapRequest.asPutDataRequest();
+        request.setUrgent();
+
+        System.out.println("Message :"+ mGoogleApiClient.isConnected());
+
+        Wearable.DataApi.putDataItem(mGoogleApiClient, request)
+                .setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
+                    @Override
+                    public void onResult(DataApi.DataItemResult dataItemResult) {
+                        if (!dataItemResult.getStatus().isSuccess()) {
+
+                            Log.e(LOG_TAG, "Failed to send data item, google api connection status is: "+mGoogleApiClient.isConnected());
+                        } else{
+                            Log.e(LOG_TAG, "Success!"+mGoogleApiClient.isConnected());
+
+                        }
+                    }
+                });
+
+
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+
     }
 }
