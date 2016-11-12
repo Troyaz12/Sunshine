@@ -36,11 +36,8 @@ import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.PutDataRequest;
-import com.google.android.gms.wearable.Wearable;
 
 public class MainActivity extends AppCompatActivity implements ForecastFragment.Callback,GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
@@ -115,18 +112,18 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
                 startService(intent);
             }
         }
-
+/*
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(Wearable.API)
                 .addConnectionCallbacks((GoogleApiClient.ConnectionCallbacks) this)
                 .addOnConnectionFailedListener((GoogleApiClient.OnConnectionFailedListener) this)
                 .build();
-
+*/
     }
     @Override
     protected void onStart() {
         super.onStart();
-        mGoogleApiClient.connect();
+  //      mGoogleApiClient.connect();
         // syncData();
 
 
@@ -176,7 +173,7 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
         double high = 2;
         double low = 3;
 
-        syncWearable(weatherId,high,low);
+//        syncWearable(weatherId,high,low);
 
 
 
@@ -244,8 +241,8 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
         PutDataRequest request = putDataMapRequest.asPutDataRequest();
         request.setUrgent();
 
-        System.out.println("Message :"+ mGoogleApiClient.isConnected());
-
+//        System.out.println("Message :"+ mGoogleApiClient.isConnected());
+/*
         Wearable.DataApi.putDataItem(mGoogleApiClient, request)
                 .setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
                     @Override
@@ -259,7 +256,7 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
                         }
                     }
                 });
-
+*/
 
     }
 

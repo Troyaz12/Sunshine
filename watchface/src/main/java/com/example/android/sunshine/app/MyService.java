@@ -15,6 +15,9 @@ public class MyService extends WearableListenerService {
 
     Double high;
     Double low;
+    int highInt;
+    int lowInt;
+
     @Override
     public void onDataChanged(DataEventBuffer dataEventBuffer) {
         super.onDataChanged(dataEventBuffer);
@@ -27,6 +30,9 @@ public class MyService extends WearableListenerService {
                     high = dataMap.getDouble("high");
                     low = dataMap.getDouble("low");
 
+                    highInt = (int) Math.round(high);
+                    lowInt = (int) Math.round(low);
+
                     System.out.println("Message wear is: "+high);
                 }
 
@@ -35,8 +41,8 @@ public class MyService extends WearableListenerService {
         // Broadcast message to wearable activity for display
         Intent messageIntent = new Intent();
         messageIntent.setAction(Intent.ACTION_SEND);
-        messageIntent.putExtra("high", high.toString());
-        messageIntent.putExtra("low", low).toString();
+        messageIntent.putExtra("high", String.valueOf(highInt));
+        messageIntent.putExtra("low", String.valueOf(lowInt));
 
         LocalBroadcastManager.getInstance(this).sendBroadcast(messageIntent);
         System.out.println("Message wear is: "+high);

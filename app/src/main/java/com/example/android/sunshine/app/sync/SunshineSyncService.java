@@ -9,9 +9,13 @@ public class SunshineSyncService extends Service {
     private static final Object sSyncAdapterLock = new Object();
     private static SunshineSyncAdapter sSunshineSyncAdapter = null;
 
+
     @Override
     public void onCreate() {
         Log.d("SunshineSyncService", "onCreate - SunshineSyncService");
+
+
+
         synchronized (sSyncAdapterLock) {
             if (sSunshineSyncAdapter == null) {
                 sSunshineSyncAdapter = new SunshineSyncAdapter(getApplicationContext(), true);
@@ -23,4 +27,6 @@ public class SunshineSyncService extends Service {
     public IBinder onBind(Intent intent) {
         return sSunshineSyncAdapter.getSyncAdapterBinder();
     }
+
+
 }

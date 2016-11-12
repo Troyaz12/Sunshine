@@ -114,13 +114,6 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter implements 
 
     public SunshineSyncAdapter(Context context, boolean autoInitialize) {
         super(context, autoInitialize);
-/*        mGoogleApiClient = new GoogleApiClient.Builder(context)
-                .addApi(Wearable.API)
-                .addConnectionCallbacks((GoogleApiClient.ConnectionCallbacks) context)
-                .addOnConnectionFailedListener((GoogleApiClient.OnConnectionFailedListener) context)
-                .build();
-
-*/
 
     }
 
@@ -289,6 +282,16 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter implements 
             JSONObject forecastJson = new JSONObject(forecastJsonStr);
             Context context = getContext();
 
+            mGoogleApiClient = new GoogleApiClient.Builder(context)
+                    .addApi(Wearable.API)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .build();
+
+            mGoogleApiClient.connect();
+
+
+
             // do we have an error?
             if ( forecastJson.has(OWM_MESSAGE_CODE) ) {
                 int errorCode = forecastJson.getInt(OWM_MESSAGE_CODE);
@@ -377,7 +380,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter implements 
                 if(i==0) {
 
 
-                  //      syncWearable(weatherId,high,low);
+                  syncWearable(weatherId,high,low);
 
                 }
 
@@ -705,20 +708,20 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter implements 
     //push data to the wearable
     private void syncWearable (int weatherID, double high, double low){
 
-        int weatherIDDummyData = 15;
-        double highDummyData = 16;
-        double lowDummyData = 17;
+      //  int weatherIDDummyData = 15;
+      //  double highDummyData = 16;
+      //  double lowDummyData = 17;
 
 
         PutDataMapRequest putDataMapRequest = PutDataMapRequest.create("/message");
-        putDataMapRequest.getDataMap().putInt("weatherID",weatherIDDummyData);
-        putDataMapRequest.getDataMap().putDouble("high",highDummyData);
-        putDataMapRequest.getDataMap().putDouble("low",lowDummyData);
+        putDataMapRequest.getDataMap().putInt("weatherID",weatherID);
+        putDataMapRequest.getDataMap().putDouble("high",high);
+        putDataMapRequest.getDataMap().putDouble("low",low);
 
         PutDataRequest request = putDataMapRequest.asPutDataRequest();
-      //  request.setUrgent();
+        request.setUrgent();
 
-        System.out.println("Message :"+ mGoogleApiClient.isConnected());
+        System.out.println("Message :"+ putDataMapRequest.getDataMap().getDouble("low"));
 
         Wearable.DataApi.putDataItem(mGoogleApiClient, request)
                 .setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
