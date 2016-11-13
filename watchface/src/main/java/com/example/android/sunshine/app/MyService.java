@@ -15,6 +15,7 @@ public class MyService extends WearableListenerService {
 
     Double high;
     Double low;
+    int weatherID;
     int highInt;
     int lowInt;
 
@@ -27,6 +28,7 @@ public class MyService extends WearableListenerService {
                 DataMap dataMap = DataMapItem.fromDataItem(dataEvent.getDataItem()).getDataMap();
                 String path = dataEvent.getDataItem().getUri().getPath();
                 if (path.equals("/message")){
+                    weatherID = dataMap.getInt("weatherID");
                     high = dataMap.getDouble("high");
                     low = dataMap.getDouble("low");
 
@@ -41,6 +43,7 @@ public class MyService extends WearableListenerService {
         // Broadcast message to wearable activity for display
         Intent messageIntent = new Intent();
         messageIntent.setAction(Intent.ACTION_SEND);
+        messageIntent.putExtra("weatherID", weatherID);
         messageIntent.putExtra("high", String.valueOf(highInt));
         messageIntent.putExtra("low", String.valueOf(lowInt));
 

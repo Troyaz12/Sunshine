@@ -17,9 +17,12 @@ package com.example.android.sunshine.app;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.util.Pair;
@@ -35,9 +38,15 @@ import com.example.android.sunshine.app.gcm.RegistrationIntentService;
 import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.wearable.DataApi;
+import com.google.android.gms.wearable.PutDataMapRequest;
+import com.google.android.gms.wearable.PutDataRequest;
+import com.google.android.gms.wearable.Wearable;
 
 
-public class MainActivity extends AppCompatActivity implements ForecastFragment.Callback {
+public class MainActivity extends AppCompatActivity implements ForecastFragment.Callback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
 
     private final String LOG_TAG = MainActivity.class.getSimpleName();
     private static final String DETAILFRAGMENT_TAG = "DFTAG";
@@ -45,12 +54,26 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
     public static final String SENT_TOKEN_TO_SERVER = "sentTokenToServer";
     private boolean mTwoPane;
     private String mLocation;
+    private boolean units;
+    private GoogleApiClient mGoogleApiClient;
+
+    private static final String[] NOTIFY_WEATHER_PROJECTION = new String[] {
+            WeatherContract.WeatherEntry.COLUMN_WEATHER_ID,
+            WeatherContract.WeatherEntry.COLUMN_MAX_TEMP,
+            WeatherContract.WeatherEntry.COLUMN_MIN_TEMP
+    };
+
+    // these indices must match the projection
+    private static final int INDEX_WEATHER_ID = 0;
+    private static final int INDEX_MAX_TEMP = 1;
+    private static final int INDEX_MIN_TEMP = 2;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mLocation = Utility.getPreferredLocation(this);
+        units = Utility.isMetric(this);
         Uri contentUri = getIntent() != null ? getIntent().getData() : null;
 
         setContentView(R.layout.activity_main);
@@ -108,11 +131,17 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
                 startService(intent);
             }
         }
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(Wearable.API)
+                .addConnectionCallbacks((GoogleApiClient.ConnectionCallbacks) this)
+                .addOnConnectionFailedListener((GoogleApiClient.OnConnectionFailedListener) this)
+                .build();
 
     }
     @Override
     protected void onStart() {
         super.onStart();
+        mGoogleApiClient.connect();
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -155,14 +184,28 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
         }
 
 
-        int weatherId =1;
-        double high = 2;
-        double low = 3;
+    // if units of measure is changed, update watch
+        if(units!=Utility.isMetric(this)) {
+            int weatherId;
+            double high;
+            double low;
 
-//        syncWearable(weatherId,high,low);
+            //get uri of current day
+            Uri weatherUri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(location, System.currentTimeMillis());
 
+            //get info from database using a cursor
+            Cursor cursor = this.getContentResolver().query(weatherUri, NOTIFY_WEATHER_PROJECTION, null, null, null);
+            if (cursor.moveToFirst()) {
+                weatherId = cursor.getInt(INDEX_WEATHER_ID);
+                high = Utility.formatToImperial(this,cursor.getDouble(INDEX_MAX_TEMP));  //changes to imperial if the option is selected
+                low = Utility.formatToImperial(this,cursor.getDouble(INDEX_MIN_TEMP));   //changes to imperial if the option is selected
 
+                cursor.close();
+                units = Utility.isMetric(this);     //put current selected units in memory
+                syncWearable(weatherId, high, low); //run method to update the wearable
 
+            }
+        }
     }
 
     @Override
@@ -211,5 +254,42 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
         }
         return true;
     }
+    //push data to the wearable
+    private void syncWearable (int weatherID, double high, double low){
 
+        PutDataMapRequest putDataMapRequest = PutDataMapRequest.create("/message");
+        putDataMapRequest.getDataMap().putInt("weatherID",weatherID);
+        putDataMapRequest.getDataMap().putDouble("high",high);
+        putDataMapRequest.getDataMap().putDouble("low",low);
+
+        PutDataRequest request = putDataMapRequest.asPutDataRequest();
+        request.setUrgent();
+
+        Wearable.DataApi.putDataItem(mGoogleApiClient, request)
+                .setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
+                    @Override
+                    public void onResult(DataApi.DataItemResult dataItemResult) {
+                        if (!dataItemResult.getStatus().isSuccess()) {
+                            Log.e(LOG_TAG, "Failed to send data item, google api connection status is: "+mGoogleApiClient.isConnected());
+                        } else{
+                            Log.e(LOG_TAG, "Success!"+mGoogleApiClient.isConnected());
+                        }
+                    }
+                });
+
+    }
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
 }

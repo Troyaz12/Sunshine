@@ -67,6 +67,7 @@ public class MyWatchFace extends CanvasWatchFaceService {
         private MessageReceiver messageReceiver;
         String highTemp = "0";
         String lowTemp = "0";
+        int weatherBackground = 0;
 
         /* Handler to update the time once a second in interactive mode. */
         private final Handler mUpdateTimeHandler = new Handler() {
@@ -132,8 +133,12 @@ public class MyWatchFace extends CanvasWatchFaceService {
 
             mTextPaint = new Paint();
             mTextPaint = createTextPaint(getResources().getColor(R.color.digital_text));
-            mYOffset = getResources().getDimension(R.dimen.digital_y_offset);
-            mYOffsetTemp = getResources().getDimension(R.dimen.digital_y_offset_temp);
+
+
+     //       mYOffset = getResources().getDimension(R.dimen.digital_y_offset);
+
+
+     //       mYOffsetTemp = getResources().getDimension(R.dimen.digital_y_offset_temp);
 
             mHandPaint = new Paint();
             mHandPaint.setColor(Color.BLUE);
@@ -151,12 +156,34 @@ public class MyWatchFace extends CanvasWatchFaceService {
         public class MessageReceiver extends BroadcastReceiver {
             @Override
             public void onReceive(Context context, Intent intent) {
-
+                weatherBackground = intent.getIntExtra("weatherID",800);
                 highTemp = intent.getStringExtra("high");
                 lowTemp = intent.getStringExtra("low");
 
-                System.out.println("Wear on rec: " +highTemp + " "+lowTemp);
-
+                    //change background depending on the days weather
+                    if (weatherBackground >= 200 && weatherBackground <= 232) {
+                        mBackgroundBitmap = BitmapFactory.decodeResource(getResources(),R.drawable.art_storm);
+                    } else if (weatherBackground >= 300 && weatherBackground <= 321) {
+                        mBackgroundBitmap = BitmapFactory.decodeResource(getResources(),R.drawable.art_light_rain);
+                    } else if (weatherBackground >= 500 && weatherBackground <= 504) {
+                        mBackgroundBitmap = BitmapFactory.decodeResource(getResources(),R.drawable.art_rain);
+                    } else if (weatherBackground == 511) {
+                        mBackgroundBitmap = BitmapFactory.decodeResource(getResources(),R.drawable.art_snow);
+                    } else if ( weatherBackground>= 520 && weatherBackground <= 531) {
+                        mBackgroundBitmap = BitmapFactory.decodeResource(getResources(),R.drawable.art_rain);
+                    } else if (weatherBackground >= 600 && weatherBackground <= 622) {
+                        mBackgroundBitmap = BitmapFactory.decodeResource(getResources(),R.drawable.art_snow);
+                    } else if (weatherBackground >= 701 && weatherBackground <= 761) {
+                        mBackgroundBitmap = BitmapFactory.decodeResource(getResources(),R.drawable.art_fog);
+                    } else if (weatherBackground == 761 || weatherBackground == 781) {
+                        mBackgroundBitmap = BitmapFactory.decodeResource(getResources(),R.drawable.art_storm);
+                    } else if (weatherBackground == 800) {
+                        mBackgroundBitmap = BitmapFactory.decodeResource(getResources(),R.drawable.art_clear);
+                    } else if (weatherBackground == 801) {
+                        mBackgroundBitmap = BitmapFactory.decodeResource(getResources(),R.drawable.art_light_clouds);
+                    } else if (weatherBackground >= 802 && weatherBackground <= 804) {
+                        mBackgroundBitmap = BitmapFactory.decodeResource(getResources(),R.drawable.art_clouds);
+                    }
             }
         }
         private Paint createTextPaint(int textColor) {
@@ -229,11 +256,19 @@ public class MyWatchFace extends CanvasWatchFaceService {
             boolean isRound = insets.isRound();
             mXOffset = resources.getDimension(isRound
                     ? R.dimen.digital_x_offset_round : R.dimen.digital_x_offset);
+
+            mXOffsetTemp = resources.getDimension(isRound
+                    ? R.dimen.digital_x_offset_round_Temp : R.dimen.digital_x_offset_Temp);
+
             float textSize = resources.getDimension(isRound
                     ? R.dimen.digital_text_size_round : R.dimen.digital_text_size);
 
-            mXOffsetTemp = resources.getDimension(isRound
-                    ? R.dimen.digital_x_offset_round_Temp : R.dimen.digital_x_offset);
+            //offsets date and temp depending on if the watch is round or square
+            mYOffsetTemp = resources.getDimension(isRound
+                    ? R.dimen.digital_y_offset_temp_round : R.dimen.digital_y_offset_temp);
+
+            mYOffset= resources.getDimension(isRound
+                    ? R.dimen.digital_y_offset_round : R.dimen.digital_y_offset);
 
             mTextPaint.setTextSize(textSize);
         }

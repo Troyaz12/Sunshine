@@ -451,7 +451,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter implements 
         String displayNotificationsKey = context.getString(R.string.pref_enable_notifications_key);
         boolean displayNotifications = prefs.getBoolean(displayNotificationsKey,
                 Boolean.parseBoolean(context.getString(R.string.pref_enable_notifications_default)));
-
+        System.out.println("Notify Weather");
         if ( displayNotifications ) {
 
             String lastNotificationKey = context.getString(R.string.pref_last_notification);
@@ -707,11 +707,6 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter implements 
 
     //push data to the wearable
     private void syncWearable (int weatherID, double high, double low){
-
-      //  int weatherIDDummyData = 15;
-      //  double highDummyData = 16;
-      //  double lowDummyData = 17;
-
 
         PutDataMapRequest putDataMapRequest = PutDataMapRequest.create("/message");
         putDataMapRequest.getDataMap().putInt("weatherID",weatherID);
