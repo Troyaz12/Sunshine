@@ -22,6 +22,11 @@ Getting Started
 This sample uses the Gradle build system.  To build this project, use the
 "gradlew build" command or use "Import Project" in Android Studio.
 
+Contributions
+-------------
+Watchface and watchface funtionality added by Troy Gugler
+
+
 Support
 -------
 
@@ -49,4 +54,3 @@ distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
 WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
 License for the specific language governing permissions and limitations under
 the License.
-
